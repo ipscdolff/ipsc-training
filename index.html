@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>IPSC Træning</title>
+  <meta name="theme-color" content="#0ea5e9" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/icon-192.png" />
+  <style>
+    :root{
+      --bg:#0b1220; --card:#0f172a; --muted:#64748b; --text:#e2e8f0; --acc:#0ea5e9; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+      --border:#1f2937; --input:#0b1220;
+    }
+    .light{
+      --bg:#f8fafc; --card:#ffffff; --muted:#475569; --text:#0f172a; --acc:#0284c7; --ok:#16a34a; --warn:#d97706; --bad:#dc2626;
+      --border:#e2e8f0; --input:#ffffff;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;}
+    header{position:sticky;top:0;background:linear-gradient(180deg,#0b1220,rgba(11,18,32,.6));backdrop-filter:blur(6px);padding:12px 16px;border-bottom:1px solid var(--border);z-index:10}
+    h1{margin:0;font-size:20px;letter-spacing:.3px}
+    .container{max-width:980px;margin:0 auto;padding:16px}
+    .tabs{display:flex;gap:8px;margin:8px 0 16px;flex-wrap:wrap}
+    .tab{flex:1;padding:10px 12px;background:#0f172a;border:1px solid var(--border);border-radius:14px;text-align:center;cursor:pointer;user-select:none}
+    .tab.active{background:#111827;border-color:var(--border);outline:2px solid rgba(14,165,233,.35)}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
+    input,select,textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--input);color:var(--text)}
+    textarea{min-height:80px;resize:vertical}
+    .row{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+    .row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .row-2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap}
+    button{padding:12px 16px;border-radius:14px;border:1px solid var(--border);background:var(--input);color:var(--text);cursor:pointer}
+    button.primary{background:linear-gradient(180deg,#0ea5e9,#0284c7);border:none}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #223047;text-align:left}
+    tr:hover td{background:#0c1526}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;border:1px solid var(--border);color:var(--muted)}
+    .stat{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid #223047;border-radius:14px;background:#0b1220}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .spark{width:100%;height:54px}
+    .install{float:right}
+    .hidden{display:none}
+    .footer{font-size:12px;color:var(--muted);margin-top:16px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>IPSC Træning <span id="pfBadge" class="badge">Minor</span>
+      <button id="installBtn" class="install hidden">Installer</button>
+      <button id="themeBtn" class="install">☀️/🌙</button>
+    </h1>
+  </header>
+  <div class="container">
+    <div class="tabs">
+      <div data-tab="new" class="tab active">Ny registrering</div>
+      <div data-tab="history" class="tab">Historik</div>
+      <div data-tab="stats" class="tab">Statistik</div>
+      <div data-tab="shooters" class="tab">Skytter</div>
+      <div data-tab="settings" class="tab">Indstillinger</div>
+    </div>
+
+    <section id="new" class="card">
+      <h3 style="margin-top:0">Indtast resultater</h3>
+      <div class="row-3">
+        <div>
+          <label>Dato</label>
+          <input type="date" id="date" />
+        </div>
+        <div>
+          <label>Skytte</label>
+          <div class="row-2">
+            <select id="shooterSel"></select>
+            <button id="quickAddShooter">+ Ny skytte</button>
+          </div>
+        </div>
+        <div>
+          <label>Øvelse / navn (valgfri)</label>
+          <input type="text" id="drill" placeholder="Bill drill, El Prez, stage 3 ..." />
+        </div>
+      </div>
+      <div class="row-3" style="margin-top:8px">
+        <div>
+          <label>Tid (sekunder)</label>
+          <input type="number" step="0.01" id="time" placeholder="fx 5.43" />
+        </div>
+        <div>
+          <label>NS</label>
+          <input type="number" id="NS" value="0" min="0" />
+        </div>
+        <div>
+          <label>Miss</label>
+          <input type="number" id="M" value="0" min="0" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <div>
+          <label>A</label>
+          <input type="number" id="A" value="0" min="0" />
+        </div>
+        <div>
+          <label>C</label>
+          <input type="number" id="C" value="0" min="0" />
+        </div>
+        <div>
+          <label>D</label>
+          <input type="number" id="D" value="0" min="0" />
+        </div>
+        <div>
+          <label>Noter</label>
+          <input type="text" id="notes" placeholder="vind, startposition, osv." />
+        </div>
+        <div class="actions" style="grid-column: span 2/ span 2; display:flex; align-items:end; gap:10px">
+          <button class="primary" id="saveBtn">Gem</button>
+          <button id="resetBtn">Nulstil</button>
+          <span id="calc" class="badge">HF: 0 • A%: 0%</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="history" class="card hidden">
+      <div class="row-3" style="margin-bottom:8px">
+        <div>
+          <label>Øvelse</label>
+          <select id="filterDrill"><option value="">Alle</option></select>
+        </div>
+        <div>
+          <label>Fra dato</label>
+          <input type="date" id="fromDate" />
+        </div>
+        <div>
+          <label>Til dato</label>
+          <input type="date" id="toDate" />
+        </div>
+      </div>
+      <div class="actions" style="margin-bottom:8px; gap:10px; align-items:center">
+        <label for="filterShooter" style="margin:0">Skytte:</label>
+        <select id="filterShooter" style="max-width:220px"></select>
+        <button id="exportJson">Eksportér JSON</button>
+        <button id="exportCsv">Eksportér CSV</button>
+        <input type="file" id="importFile" accept=".json" class="hidden" />
+        <button id="importJson">Importér JSON</button>
+        <button id="clearAll" style="margin-left:auto">Slet alle sessions</button>
+      </div>
+      <table id="table">
+        <thead>
+          <tr><th>Dato</th><th>Skytte</th><th>Øvelse</th><th>Tid</th><th>A/C/D</th><th>NS</th><th>Miss</th><th>Point</th><th>HF</th><th>A%</th><th></th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="stats" class="card hidden">
+      <div class="row-3" style="margin-bottom:8px">
+        <div>
+          <label>Øvelse</label>
+          <select id="filterDrillStats"><option value="">Alle</option></select>
+        </div>
+        <div>
+          <label>Fra dato</label>
+          <input type="date" id="fromDateStats" />
+        </div>
+        <div>
+          <label>Til dato</label>
+          <input type="date" id="toDateStats" />
+        </div>
+      </div>
+      <div class="actions" style="margin-bottom:8px; gap:10px; align-items:center">
+        <label for="filterShooterStats" style="margin:0">Skytte:</label>
+        <select id="filterShooterStats" style="max-width:220px"></select>
+      </div>
+      <div class="grid">
+        <div class="stat">
+          <div>Gns. Hit Factor</div>
+          <div id="avgHf" style="font-size:22px;font-weight:700">-</div>
+          <svg id="hfSpark" class="spark"></svg>
+        </div>
+        <div class="stat">
+          <div>A%</div>
+          <div id="avgA" style="font-size:22px;font-weight:700">-</div>
+          <svg id="aSpark" class="spark"></svg>
+        </div>
+        <div class="stat">
+          <div>NS pr. træning</div>
+          <div id="avgNs" style="font-size:22px;font-weight:700">-</div>
+          <svg id="nsSpark" class="spark"></svg>
+        </div>
+        <div class="stat">
+          <div>Miss pr. træning</div>
+          <div id="avgMiss" style="font-size:22px;font-weight:700">-</div>
+          <svg id="mSpark" class="spark"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section id="shooters" class="card hidden">
+      <h3 style="margin-top:0">Skytter</h3>
+      <div class="row-2">
+        <div>
+          <label>Navn</label>
+          <input type="text" id="newShooterName" placeholder="fx Mikkel Jensen" />
+        </div>
+        <div>
+          <label>Noter (valgfri)</label>
+          <input type="text" id="newShooterNotes" placeholder="klasse, våben, m.m." />
+        </div>
+      </div>
+      <div class="actions" style="margin-top:8px">
+        <button class="primary" id="addShooterBtn">Tilføj skytte</button>
+      </div>
+      <table id="shootersTable" style="margin-top:12px">
+        <thead><tr><th>Navn</th><th>Noter</th><th>Sessions</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section id="settings" class="card hidden">
+      <h3 style="margin-top:0">Indstillinger</h3>
+      <div class="row-3">
+        <div>
+          <label>Power factor (scoring)</label>
+          <select id="pf">
+            <option value="minor" selected>Minor (A=5, C=3, D=1)</option>
+            <option value="major">Major (A=5, C=4, D=2)</option>
+          </select>
+        </div>
+        <div>
+          <label>Straffe</label>
+          <select id="pen">
+            <option value="classic" selected>IPSC standard: Miss -10, NS -10</option>
+          </select>
+        </div>
+        <div>
+          <label>Backup</label>
+          <button id="backupNow">Download fuld backup</button>
+        </div>
+      </div>
+      <p class="footer">Data gemmes offline på enheden (IndexedDB). Ingen cloud krævet.</p>
+    </section>
+
+    <p class="footer">Underviser-udgave: multi-skytter, filtre (øvelse + dato + skytte) og tema-toggle.</p>
+  </div>
+
+<script>
+/* --- DB --- */
+const DB_NAME = 'ipsc-db';
+const STORE = 'sessions';
+const SHOOTERS = 'shooters';
+let db;
+
+function openDB(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(DB_NAME, 2);
+    req.onupgradeneeded = (e)=>{
+      const db = e.target.result;
+      if(!db.objectStoreNames.contains(STORE)){
+        const store = db.createObjectStore(STORE, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('by_date', 'date');
+      }
+      if(!db.objectStoreNames.contains(SHOOTERS)){
+        db.createObjectStore(SHOOTERS, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+
+async function initDB(){ db = await openDB(); }
+
+/* --- Helpers --- */
+function $(id){ return document.getElementById(id); }
+function fmt(n, d=2){ return (n===null||n===undefined||isNaN(n))?'-':Number(n).toFixed(d); }
+function todayStr(){ const t=new Date(); return t.toISOString().slice(0,10); }
+
+function scorePoints({A,C,D,NS,M}, pf){
+  const a = +A||0, c=+C||0, d=+D||0, ns=+NS||0, m=+M||0;
+  const isMinor = (pf||'minor')==='minor';
+  const pA=5, pC=isMinor?3:4, pD=isMinor?1:2;
+  const points = a*pA + c*pC + d*pD - (ns*10 + m*10);
+  return points;
+}
+function calcHF(points, time){ const t = +time||0; return t>0 ? points/t : 0; }
+function calcApercent({A,C,D}){ const a=+A||0, c=+C||0, d=+D||0; const total=a+c+d; return total>0 ? (a/total)*100 : 0; }
+
+function spark(el, arr){
+  const w = el.clientWidth || 240, h = el.clientHeight || 54, p=6;
+  el.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  el.innerHTML='';
+  const svgNS='http://www.w3.org/2000/svg';
+  if(!arr || arr.length===0){ return; }
+  const min = Math.min(...arr), max = Math.max(...arr);
+  const scaleX = (i)=> p + (i*(w-2*p))/Math.max(1,arr.length-1);
+  const scaleY = (v)=> { if(max===min) return h/2; return h - p - ((v - min) * (h-2*p) / (max - min)); };
+  const path = document.createElementNS(svgNS,'path');
+  let d='';
+  arr.forEach((v,i)=>{ const x=scaleX(i), y=scaleY(v); d += (i===0?`M ${x} ${y}`:` L ${x} ${y}`); });
+  path.setAttribute('d', d); path.setAttribute('fill','none'); path.setAttribute('stroke','currentColor'); path.setAttribute('stroke-width','2');
+  el.appendChild(path);
+}
+
+/* --- Theme + filters --- */
+function withinRange(d, from, to){
+  if(!d) return true;
+  const t = new Date(d).getTime();
+  if(from){ const f = new Date(from).getTime(); if(t < f) return false; }
+  if(to){ const tt = new Date(to).getTime(); if(t > tt) return false; }
+  return true;
+}
+function uniqueSorted(arr){ return [...new Set(arr.filter(Boolean))].sort((a,b)=> (a||'').localeCompare(b||'', 'da')); }
+function applyFilters(rows, {shooterId, drill, from, to}){
+  return rows.filter(r=>{
+    const byShooter = !shooterId || String(r.shooterId)===String(shooterId);
+    const byDrill = !drill || (r.drill||'')===drill;
+    const byDate = withinRange(r.date, from, to);
+    return byShooter && byDrill && byDate;
+  });
+}
+function applyThemeFromStorage(){
+  const theme = localStorage.getItem('theme') || 'dark';
+  if(theme==='light') document.body.classList.add('light'); else document.body.classList.remove('light');
+}
+
+/* --- Shooters store --- */
+async function addShooter(name, notes=''){
+  if(!name || !name.trim()){ alert('Angiv et navn.'); return; }
+  const tx = db.transaction('shooters', 'readwrite');
+  tx.objectStore('shooters').add({ name: name.trim(), notes: notes.trim(), active: true, createdAt: new Date().toISOString() });
+  await tx.complete;
+  await refreshShooterOptions();
+  renderShootersTable();
+}
+async function getShooters(){
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction('shooters', 'readonly');
+    const req = tx.objectStore('shooters').getAll();
+    req.onsuccess = ()=>{
+      const list = req.result || [];
+      list.sort((a,b)=> (a.name||'').localeCompare(b.name||'', 'da'));
+      resolve(list);
+    };
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function deleteShooter(id){
+  const sessions = await getAllSessions();
+  const used = sessions.some(s => s.shooterId === id);
+  if(used){ alert('Kan ikke slette: skytte har registrerede sessions.'); return; }
+  const tx = db.transaction('shooters', 'readwrite');
+  tx.objectStore('shooters').delete(id);
+  await tx.complete;
+  await refreshShooterOptions();
+  renderShootersTable();
+}
+async function renameShooter(id, newName){
+  const tx = db.transaction('shooters', 'readwrite');
+  const store = tx.objectStore('shooters');
+  const getReq = store.get(id);
+  await new Promise((res,rej)=>{ getReq.onsuccess=res; getReq.onerror=rej; });
+  const rec = getReq.result;
+  if(!rec){ alert('Skytte ikke fundet'); return; }
+  rec.name = newName.trim();
+  store.put(rec);
+  await tx.complete;
+  await refreshShooterOptions();
+  renderShootersTable();
+}
+let shootersCache = [];
+async function refreshShooterOptions(){
+  shootersCache = await getShooters();
+  const sel = $('shooterSel');
+  sel.innerHTML = '<option value=\"\">Vælg skytte…</option>' + shootersCache.map(s=>`<option value=\"${s.id}\">${s.name}</option>`).join('');
+  const fh = $('filterShooter');
+  if(fh){
+    const keep = fh.value;
+    fh.innerHTML = '<option value=\"\">Alle</option>' + shootersCache.map(s=>`<option value=\"${s.id}\">${s.name}</option>`).join('');
+    if(keep) fh.value = keep;
+  }
+  const fs = $('filterShooterStats');
+  if(fs){
+    const keep2 = fs.value;
+    fs.innerHTML = '<option value=\"\">Alle</option>' + shootersCache.map(s=>`<option value=\"${s.id}\">${s.name}</option>`).join('');
+    if(keep2) fs.value = keep2;
+  }
+}
+function shooterNameById(id){ const s = shootersCache.find(x => String(x.id) === String(id)); return s ? s.name : ''; }
+
+/* --- Sessions store --- */
+async function getAllSessions(){
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction('sessions','readonly');
+    const req = tx.objectStore('sessions').getAll();
+    req.onsuccess = ()=> resolve((req.result||[]).sort((a,b)=> (a.date<b.date?-1:1)));
+    req.onerror = ()=> reject(req.error);
+  });
+}
+function avg(arr){ return arr.length? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+
+/* --- UI --- */
+const tabs = document.querySelectorAll('.tab');
+tabs.forEach(t=>t.addEventListener('click', ()=>{
+  tabs.forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('section').forEach(s=>s.classList.add('hidden'));
+  t.classList.add('active');
+  $(t.dataset.tab).classList.remove('hidden');
+  if(t.dataset.tab==='history'){ renderTable(); }
+  if(t.dataset.tab==='stats'){ renderStats(); }
+  if(t.dataset.tab==='shooters'){ renderShootersTable(); }
+}));
+
+$('date').value = todayStr();
+['A','C','D','NS','M','time'].forEach(id=>{ $(id).addEventListener('input', updateCalc); });
+function updateCalc(){
+  const data = { A:$('A').value, C:$('C').value, D:$('D').value, NS:$('NS').value, M:$('M').value };
+  const pf = localStorage.getItem('pf') || 'minor';
+  const pts = scorePoints(data, pf);
+  const hf = calcHF(pts, $('time').value);
+  const aPct = calcApercent(data);
+  $('calc').textContent = `HF: ${fmt(hf)} • A%: ${fmt(aPct,1)}%`;
+}
+document.addEventListener('click', (e)=>{
+  if(e.target && e.target.id==='themeBtn'){
+    const current = localStorage.getItem('theme') || 'dark';
+    const next = current==='dark' ? 'light' : 'dark';
+    localStorage.setItem('theme', next);
+    applyThemeFromStorage();
+  }
+});
+
+$('quickAddShooter').addEventListener('click', ()=>{
+  const name = prompt('Navn på skytte?');
+  if(name && name.trim()) addShooter(name.trim(), '');
+});
+$('addShooterBtn').addEventListener('click', ()=>{
+  const n = $('newShooterName').value.trim();
+  const notes = $('newShooterNotes').value.trim();
+  if(!n){ alert('Angiv et navn.'); return; }
+  addShooter(n, notes);
+  $('newShooterName').value=''; $('newShooterNotes').value='';
+});
+$('saveBtn').addEventListener('click', async ()=>{
+  const shooterIdStr = $('shooterSel').value;
+  if(!shooterIdStr){ alert('Vælg en skytte før du gemmer.'); return; }
+  const shooterId = Number(shooterIdStr);
+  const session = {
+    date: $('date').value || todayStr(),
+    shooterId, shooter: shooterNameById(shooterId),
+    drill: $('drill').value || '',
+    time: +$('time').value || 0,
+    A:+$('A').value||0, C:+$('C').value||0, D:+$('D').value||0,
+    NS:+$('NS').value||0, M:+$('M').value||0,
+    notes:$('notes').value||'',
+    pf: localStorage.getItem('pf')||'minor'
+  };
+  session.points = scorePoints(session, session.pf);
+  session.hf = calcHF(session.points, session.time);
+  session.a_pct = calcApercent(session);
+  const tx = db.transaction('sessions','readwrite');
+  tx.objectStore('sessions').add(session);
+  await tx.complete;
+  ['time','A','C','D','NS','M','notes'].forEach(id=>$(id).value = id==='notes'?'':0);
+  updateCalc();
+  alert('Gemt!');
+});
+$('resetBtn').addEventListener('click', ()=>{
+  $('drill').value=''; $('time').value=''; ['A','C','D','NS','M','notes'].forEach(id=>$(id).value= id==='notes'?'':0);
+  updateCalc();
+});
+
+/* Filters listeners */
+['filterShooter','filterDrill','fromDate','toDate'].forEach(id=>{
+  document.addEventListener('change', (e)=>{ if(e.target && e.target.id===id) renderTable(); });
+});
+['filterShooterStats','filterDrillStats','fromDateStats','toDateStats'].forEach(id=>{
+  document.addEventListener('change', (e)=>{ if(e.target && e.target.id===id) renderStats(); });
+});
+
+/* History render */
+function renderTableRows(rows){
+  const tbody = document.querySelector('#table tbody');
+  tbody.innerHTML='';
+  for(const r of rows){
+    const tr=document.createElement('tr');
+    const delBtn = `<button data-id="${r.id}" class="del">Slet</button>`;
+    tr.innerHTML = `
+      <td>${r.date||''}</td>
+      <td>${r.shooter||''}</td>
+      <td>${r.drill||''}</td>
+      <td>${fmt(r.time,2)}</td>
+      <td>${r.A}/${r.C}/${r.D}</td>
+      <td>${r.NS}</td>
+      <td>${r.M}</td>
+      <td>${r.points}</td>
+      <td>${fmt(r.hf,2)}</td>
+      <td>${fmt(r.a_pct,1)}%</td>
+      <td>${delBtn}</td>`;
+    tbody.appendChild(tr);
+  }
+  tbody.querySelectorAll('.del').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = Number(btn.dataset.id);
+      const tx = db.transaction('sessions','readwrite');
+      tx.objectStore('sessions').delete(id);
+      await tx.complete;
+      renderTable();
+    });
+  });
+}
+async function refreshDrillFilters(){
+  const rows = await getAllSessions();
+  const drills = uniqueSorted(rows.map(r=> (r.drill||'').trim()));
+  const setOptions = (id)=>{
+    const el = $(id); if(!el) return;
+    const keep = el.value;
+    el.innerHTML = '<option value=\"\">Alle</option>' + drills.map(d=>`<option value=\"${d}\">${d}</option>`).join('');
+    if(keep && drills.includes(keep)) el.value = keep;
+  };
+  setOptions('filterDrill'); setOptions('filterDrillStats');
+}
+async function renderTable(){
+  const rows = await getAllSessions();
+  await refreshDrillFilters();
+  const shooterId = $('filterShooter') ? $('filterShooter').value : '';
+  const filt = {
+    shooterId,
+    drill: $('filterDrill') ? $('filterDrill').value : '',
+    from: $('fromDate') ? $('fromDate').value : '',
+    to: $('toDate') ? $('toDate').value : ''
+  };
+  const view = applyFilters(rows, filt);
+  renderTableRows(view);
+}
+
+/* Stats render */
+async function renderStats(){
+  const rows = await getAllSessions();
+  await refreshDrillFilters();
+  const shooterId = $('filterShooterStats') ? $('filterShooterStats').value : '';
+  const filt = {
+    shooterId,
+    drill: $('filterDrillStats') ? $('filterDrillStats').value : '',
+    from: $('fromDateStats') ? $('fromDateStats').value : '',
+    to: $('toDateStats') ? $('toDateStats').value : ''
+  };
+  const data = applyFilters(rows, filt);
+  if(!data.length){
+    $('avgHf').textContent='-'; $('avgA').textContent='-'; $('avgNs').textContent='-'; $('avgMiss').textContent='-';
+    ['hfSpark','aSpark','nsSpark','mSpark'].forEach(id=>$(id).innerHTML='');
+    return;
+  }
+  $('avgHf').textContent = fmt(avg(data.map(r=>r.hf)));
+  $('avgA').textContent = fmt(avg(data.map(r=>r.a_pct)),1)+'%';
+  $('avgNs').textContent = fmt(avg(data.map(r=>r.NS)),2);
+  $('avgMiss').textContent = fmt(avg(data.map(r=>r.M)),2);
+  spark($('hfSpark'), data.map(r=>r.hf));
+  spark($('aSpark'), data.map(r=>r.a_pct));
+  spark($('nsSpark'), data.map(r=>r.NS));
+  spark($('mSpark'), data.map(r=>r.M));
+}
+
+/* Shooters table */
+async function renderShootersTable(){
+  const tbody = document.querySelector('#shootersTable tbody');
+  tbody.innerHTML='';
+  const shooters = await getShooters();
+  const sessions = await getAllSessions();
+  const counts = {}; for(const s of sessions){ counts[s.shooterId] = (counts[s.shooterId]||0) + 1; }
+  for(const s of shooters){
+    const tr = document.createElement('tr');
+    const count = counts[s.id] || 0;
+    tr.innerHTML = `
+      <td>${s.name}</td>
+      <td>${s.notes||''}</td>
+      <td>${count}</td>
+      <td>
+        <button class="rename" data-id="${s.id}">Omdøb</button>
+        <button class="delShooter" data-id="${s.id}">Slet</button>
+      </td>`;
+    tbody.appendChild(tr);
+  }
+  tbody.querySelectorAll('.delShooter').forEach(btn=> btn.addEventListener('click', ()=> deleteShooter(Number(btn.dataset.id))));
+  tbody.querySelectorAll('.rename').forEach(btn=> btn.addEventListener('click', async ()=>{
+    const id = Number(btn.dataset.id);
+    const current = shooters.find(x=>x.id===id)?.name || '';
+    const nn = prompt('Nyt navn:', current);
+    if(nn && nn.trim()) await renameShooter(id, nn.trim());
+  }));
+}
+
+/* Export/Import/Backup */
+function toCSV(rows){
+  const header = ['id','date','shooterId','shooter','drill','time','A','C','D','NS','M','points','hf','a_pct','notes','pf'];
+  const lines = [header.join(',')];
+  for(const r of rows){
+    const vals = header.map(k=>{
+      const v = r[k]!==undefined ? r[k] : '';
+      const s = (''+v).replaceAll('"','""');
+      return /[",\\n]/.test(s) ? '"'+s+'"' : s;
+    });
+    lines.push(vals.join(','));
+  }
+  return lines.join('\\n');
+}
+document.addEventListener('click', async (e)=>{
+  if(e.target && e.target.id==='backupNow'){
+    const rows = await getAllSessions();
+    const shooters = await getShooters();
+    const payload = { sessions: rows, shooters };
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'ipsc-backup.json'; a.click(); URL.revokeObjectURL(url);
+  }
+  if(e.target && e.target.id==='exportJson'){
+    const rows = await getAllSessions();
+    const shooterId = $('filterShooter').value;
+    const filt = {
+      shooterId,
+      drill: $('filterDrill').value,
+      from: $('fromDate').value,
+      to: $('toDate').value
+    };
+    const view = applyFilters(rows, filt);
+    const blob = new Blob([JSON.stringify(view,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='ipsc-data.json'; a.click(); URL.revokeObjectURL(url);
+  }
+  if(e.target && e.target.id==='exportCsv'){
+    const rows = await getAllSessions();
+    const shooterId = $('filterShooter').value;
+    const filt = {
+      shooterId,
+      drill: $('filterDrill').value,
+      from: $('fromDate').value,
+      to: $('toDate').value
+    };
+    const view = applyFilters(rows, filt);
+    const csv = toCSV(view);
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='ipsc-data.csv'; a.click(); URL.revokeObjectURL(url);
+  }
+  if(e.target && e.target.id==='importJson'){
+    $('importFile').click();
+  }
+});
+$('importFile').addEventListener('change', async (e)=>{
+  const file = e.target.files[0]; if(!file) return;
+  const text = await file.text(); const json = JSON.parse(text);
+  let sessions = Array.isArray(json) ? json : json.sessions || [];
+  const tx = db.transaction('sessions','readwrite'); const store = tx.objectStore('sessions');
+  for(const r of sessions){ const copy = Object.assign({}, r); delete copy.id; store.add(copy); }
+  await tx.complete; alert('Importeret!'); renderTable();
+});
+
+/* Settings + install */
+function loadSettings(){ const pf = localStorage.getItem('pf') || 'minor'; $('pf').value = pf; $('pfBadge').textContent = pf.charAt(0).toUpperCase()+pf.slice(1); }
+$('pf').addEventListener('change', ()=>{ localStorage.setItem('pf', $('pf').value); loadSettings(); updateCalc(); });
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e)=>{ e.preventDefault(); deferredPrompt = e; $('installBtn').classList.remove('hidden'); });
+$('installBtn').addEventListener('click', async ()=>{ if(deferredPrompt){ deferredPrompt.prompt(); await deferredPrompt.userChoice; $('installBtn').classList.add('hidden'); deferredPrompt = null; }});
+
+/* Boot */
+window.addEventListener('load', async ()=>{
+  await initDB();
+  await refreshShooterOptions();
+  updateCalc();
+  loadSettings();
+  renderTable();
+  renderStats();
+  renderShootersTable();
+  applyThemeFromStorage();
+  if('serviceWorker' in navigator){ try{ await navigator.serviceWorker.register('./sw.js'); }catch(e){ console.warn('SW reg fejl', e); } }
+});
+</script>
+<script>
+if(!('complete' in IDBTransaction.prototype)){
+  Object.defineProperty(IDBTransaction.prototype,'complete', {
+    get(){ return new Promise((res,rej)=>{ this.addEventListener('complete',()=>res()); this.addEventListener('error',()=>rej(this.error)); this.addEventListener('abort',()=>rej(this.error)); }); }
+  });
+}
+</script>
+</body>
+</html>
